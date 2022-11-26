@@ -14,16 +14,6 @@ main file. This file contains the main function of smash
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 
-class job {
-    public:
-        int job_id;
-        string command;
-        int pid;
-        time_t seconds_elapsed;
-        bool stopped;
-        // maybe we need to add something with the signals
-};
-
 char* L_Fg_Cmd;
 std::list<job> jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE]; 

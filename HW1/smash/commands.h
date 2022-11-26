@@ -17,3 +17,12 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif
 
+class job {
+    public:
+        int job_id;
+        string command;
+        int pid;
+        time_t seconds_elapsed;
+        bool stopped;
+        // maybe we need to add something with the signals
+};
