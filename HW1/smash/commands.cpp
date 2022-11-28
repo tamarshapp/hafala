@@ -3,6 +3,40 @@
 #include "commands.h"
 #include <stdlib.h>
 //********************************************
+
+
+
+// function name: get_job
+// Description: bing the job matching id
+// Parameters: pointer to jobs, job id string
+// Returns: iterator in the job place
+std::list<job>::iterator get_job(list jobs, int job_id){
+
+	std::list<job>::iterator it;
+	for (it = jobs.begin(); it != jobs.end(); ++it){
+		if(it->id == job_id){
+			return it;
+		}
+	}
+	return NULL
+
+}
+
+// function name: max_job
+// Description: go over list and bring back max_gob num
+// Parameters: pointer to jobs
+// Returns: int max val
+int max_job(list jobs){
+	std::list<job>::iterator it;
+	int max = 0;
+	for (it = jobs.begin(); it != jobs.end(); ++it){
+		if(it->id > max){
+			max = it->id;
+		}
+	}
+	return max
+}
+
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
 // Parameters: pointer to jobs, command string
@@ -10,8 +44,6 @@
 //**************************************************************************************
 int ExeCmd(list jobs, char* lineSize, char* cmdString)
 {
-	itrator get_job(list jobs, char* job_id);
-	int max_job(list jobs);
 	char* cmd; 
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
@@ -55,9 +87,9 @@ int ExeCmd(list jobs, char* lineSize, char* cmdString)
  		if ((num_arg != 2) || ((int)arg[1] >= 0)){ 																										//check what is a illegal format
  			fprinf(strerr, "‫‪smash‬‬ ‫‪error:‬‬ ‫‪kill:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬");
  		}
- 		std::list<char**>::iterator it = get_job(jobs, (char*)arg[2]);
+ 		std::list<job>::iterator it = get_job(jobs, (int)arg[2]);
  		if (it != NULL){
- 			kill(arg[1], (int)((*it)[2]));																												//what is the place of pid
+ 			kill(it->pid, (int)arg[1]));																												//what is the place of pid
  		}
  		else {
  			printf("smash error: kill: job-id %d does not exist", arg[2]);
@@ -71,10 +103,10 @@ int ExeCmd(list jobs, char* lineSize, char* cmdString)
 		std::list<char**>::iterator itr = jobs.begin();
 		for (it = jobs.begin(); it != jobs.end(); ++it){
 			if (!strcmp((*it)[4] , "stopped")){
-				print("[%d] %s : %d %d (stopped)", (int)(*it)[0], (*it)[1], (int)(*it)[2], difftime(time(), (int)(*it)[2]));
+				printf("[%d] %s : %d %d (stopped)", (int)(*it)[0], (*it)[1], (int)(*it)[2], difftime(time(), (int)(*it)[2]));
 			}
 			else{
-				print("[%d] %s : %d %d", (int)(*it)[0], (*it)[1], (int)(*it)[2], difftime(time(), (int)(*it)[2]));	
+				printf("[%d] %s : %d %d", (int)(*it)[0], (*it)[1], (int)(*it)[2], difftime(time(), (int)(*it)[2]));	
 			}
 			//check if kob finish and delete
 		}
@@ -87,18 +119,81 @@ int ExeCmd(list jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
 	{
+		if (num_arg == 2){
+			std::list<job>::iterator it = get_job(jobs, (int)arg[2]);
+			if (it == NULL){
+				printf("smash error: fg: job-id %d does not exist", (int)arg[2]);
+			}
+			else {
+				kill(it->pid, ‫‪SIGCONT‬‬);																										//what is the place of pid
+				waitpid(it->pid);
+			}
+		}
+		else if (num_arg == 1){
+			max_job_id = max_job(list jobs);
+			if (max_job_id == 0){
+				printf("‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪jobs‬‬ ‫‪list‬‬ ‫‪is‬‬ ‫‪empty‬‬");
+			}
+			else{
+				std::list<job>::iterator it = get_job(jobs, max_job_id);
+				kill(it->pid, ‫‪SIGCONT‬‬);																										//what is the place of pid
+				waitpid(it->pid);
+			}
+		}
+		else{
+			printf("‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬");
+		}
 		
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
-  		
+		//if we get the job id
+		if (num_arg == 2){
+			std::list<job>::iterator it = get_job(jobs, (int)arg[2]);
+			if (it == NULL){
+				printf("smash error: bg: job-id %d does not exist", (int)arg[2]);
+			}
+			else if(it->stopped == 1){
+				printf("‫‪smash‬‬ ‫‪error:‬‬ ‫‪bg:‬‬ ‫‪job-id‬‬ ‫>‪<job-id‬‬ ‫‪is‬‬ ‫‪already‬‬ ‫‪running‬‬ ‫‪in‬‬ ‫‪the‬‬ ‫‪background‬‬");
+			}
+			else {
+				kill(it->pid, ‫‪SIGCONT‬‬);																										//what is the place of pid
+				it->stopprd = 0;
+			}
+		}
+		//if we didnt get the job id
+		else if (num_arg == 1){
+			//get the job with the max id and stopped
+			max_job_id_stopped = 0;
+			std::list<job>::iterator it;
+			for (it = jobs.begin(); it != jobs.end(); ++it){
+				if((it->id > max) && (it->stoppes == 1)){
+					max_job_id_stopped = it->id;
+				}
+			}
+			//if there isnt job stopped at the list
+			if (max_job_id == 0){
+				printf("‫‪smash‬‬ ‫‪error:‬‬ ‫‪bg:‬‬ ‫‪there‬‬ ‫‪are‬‬ ‫‪no‬‬ ‫‪stopped‬‬ ‫‪jobs‬‬ ‫‪to‬‬ ‫‪resume‬‬");
+			}
+			else{
+				std::list<job>::iterator it = get_job(jobs, max_job_id);
+				kill(it->pid, ‫‪SIGCONT‬‬);																										//what is the place of pid
+				it->pid = 0;
+			}
+		}
+		else{
+			printf("‫‪smash‬‬ ‫‪error:‬‬ ‫‪bg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬");
+		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
    		
-	} 
+	}
+	else if (!strycmp(cmd, "diff")){
+		
+	}
 	/*************************************************/
 	else // external command
 	{
@@ -147,26 +242,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 					*/
 	}
 }
-//**************************************************************************************
-// function name: ExeComp
-// Description: executes complicated command
-// Parameters: command string
-// Returns: 0- if complicated -1- if not
-//**************************************************************************************
-//int ExeComp(char* lineSize)
-//{
-//	char ExtCmd[MAX_LINE_SIZE+2];
-//	char *args[MAX_ARG];
-//    if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
-//    {
-//		// Add your code here (execute a complicated command)
-//					
-//		/* 
-//		your code
-//		*/
-//	} 
-//	return -1;
-//}
+
 //**************************************************************************************
 // function name: BgCmd
 // Description: if command is in background, insert the command to jobs

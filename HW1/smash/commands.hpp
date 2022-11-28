@@ -21,7 +21,7 @@ class job {
     public:
         int job_id;
         string command;
-        int pid;
+        pid_t pid;
         time_t seconds_elapsed;
         bool stopped;
         // maybe we need to add something with the signals
