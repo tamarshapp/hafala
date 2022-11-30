@@ -77,9 +77,9 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 	{
 		char* cd_curr = getcwd(pwd,MAX_LINE_SIZE);
 		if (num_arg > 2){
-			cout << ‫‪"smash‬‬ ‫‪error:‬‬ ‫‪cd:‬‬ ‫‪too‬‬ ‫‪many‬‬ ‫‪arguments‬‬"<<endl;
+			cout << "smash error: cd: too many arguments"<<endl;
 		}
-		else if (!strcmp((char*)args[1]), "-"){
+		else if (!strcmp(args[1], "-")){
 			if (cd == NULL){
 				cout << "smash error: cd: OLDPWD not set"<<endl;
 			}
@@ -88,12 +88,12 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 				cd = cd_curr;
 			}
 		}
-		else if((!strcmp((char*)args[1]), "..")){
+		else if(!strcmp(args[1], "..")){
 			chdir("..");
 			cd = cd_curr;
 		}
 		else{
-			chdir((char*)args[1]);
+			chdir(args[1]);
 			cd = cd_curr;
 		}
 	} 
@@ -142,7 +142,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
 	{
-		fprintf(‫stdout, ‪"smash‬‬ ‫‪pid‬‬ ‫‪is‬‬ ‫‪%d", (int)getpid());
+		fprintf(stdout, "smash pid is %d", (int)getpid());
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
@@ -154,7 +154,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 				fprintf(stdout, "smash error: fg: job-id %d does not exist", atoi(args[2]));
 			}
 			else {
-				kill(it->pid, ‫‪SIGCONT‬‬);
+				kill(it->pid, SIGCONT);
 				fg_cur = (const job&)it;
 				waitpid(it->pid, &status, WNOHANG | WUNTRACED);
 				/*if (WIFSTOPPED(status)){
@@ -173,7 +173,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 			}
 			else{
 				std::list<job>::iterator it = get_job(jobs, max_job_id);
-				kill(it->pid, ‫‪SIGCONT‬‬);				
+				kill(it->pid, SIGCONT);
 				fg_cur = (const job&)it;
 				waitpid(it->pid, &status, WNOHANG | WUNTRACED);
 				/*if (WIFSTOPPED(status)){
@@ -202,7 +202,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 				fprintf(stdout, "‫‪smash‬‬ ‫‪error:‬‬ ‫‪bg:‬‬ ‫‪job-id‬‬ ‫‪%d ‫‪is‬‬ ‫‪already‬‬ ‫‪running‬‬ ‫‪in‬‬ ‫‪the‬‬ ‫‪background‬‬", atoi(args[2]));
 			}
 			else {
-				kill(it->pid, ‫‪SIGCONT‬‬);																										//what is the place of pid
+				kill(it->pid, SIGCONT);
 				it->stopped = 0;
 			}
 		}
@@ -222,7 +222,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 			}
 			else{
 				std::list<job>::iterator it = get_job(jobs, max_job_id_stopped);
-				kill(it->pid, ‫‪SIGCONT‬‬);																										//what is the place of pid
+				kill(it->pid, SIGCONT);
 				it->pid = 0;
 			}
 		}

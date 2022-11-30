@@ -19,7 +19,8 @@ using namespace std;
 
 char* L_Fg_Cmd;
 std::list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
-char lineSize[MAX_LINE_SIZE]; 
+char lineSize[MAX_LINE_SIZE];
+job fg_cur;
 
 
 //**************************************************************************************
@@ -54,13 +55,11 @@ int main(int argc, char *argv[])
 			exit (-1); 
 	L_Fg_Cmd[0] = '\0';
 	int quit = 1;
-	job fg_cur;
 	fg_cur.job_id = 0;
 	char* cd = NULL;
-	
-    	while (quit == 1)
-    	{
-	 	cout << "smash > ";
+    while (quit == 1)
+    {
+    	cout << "smash > "<<endl;
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
