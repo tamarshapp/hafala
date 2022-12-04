@@ -33,7 +33,8 @@ int main(int argc, char *argv[])
     struct sigaction actcz = {0};
     actcz.sa_handler = &catch_sig;
     sigaction(SIGINT, &actcz, NULL);
-	
+    sigaction(SIGSTOP, &actcz, NULL);
+
 	//signal declaretions
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
@@ -51,8 +52,9 @@ int main(int argc, char *argv[])
 
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
-	if (L_Fg_Cmd == NULL) 
-			exit (-1); 
+	if (L_Fg_Cmd == NULL){
+		exit (-1);
+	}
 	L_Fg_Cmd[0] = '\0';
 	int quit = 1;
 	fg_cur.job_id = 0;

@@ -351,7 +351,7 @@ int BgCmd(char* lineSize, list<job> jobs,  char* cmdString, int quit, job fg_cur
     	Command = strtok(lineSize, delimiters);
         if (Command == NULL)   {
 		    return -1;
-            }
+        }
 		// Add your code here (execute a in the background)
         job bg_job;
         bg_job.job_id = max_job(jobs)+1;
@@ -360,7 +360,7 @@ int BgCmd(char* lineSize, list<job> jobs,  char* cmdString, int quit, job fg_cur
         time(&(bg_job.seconds_elapsed));
         bg_job.stopped = 0;
         jobs.push_back(bg_job);
-        ExeCmd(jobs, lineSize, Command, quit, fg_cur, cd ,bg);
+        ExeCmd(jobs, lineSize, cmdString, quit, fg_cur, cd ,bg); //try
         return 0;
 	}
 	return -1;
