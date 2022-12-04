@@ -16,5 +16,5 @@ signals.o: signals.cpp signals.h commands.h
 	$(CXX) $(CXXFLAGS) -c -fpic  signals.cpp
 # Cleaning old files before new make
 clean:
-	$(RM) $(TARGET) *.o *~ "#"* core.*
+	$(RM) $(TARGET) *.o smash *~ "#"* core.*
 

@@ -48,7 +48,7 @@ int max_job(list<job> jobs){
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur, char* cd,  bool bg)
+int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cur, char* &cd,  bool bg)
 {
 	char* cmd;
 	char* cmd_fg[MAX_ARG];
@@ -68,7 +68,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 			num_arg++; 
  
 	}
-/*************************************************/
+/*************************************************/	
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
 // MORE IF STATEMENTS AS REQUIRED
@@ -76,7 +76,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 	if (!strcmp(cmd, "cd") ) 
 	{
 		char* cd_curr = getcwd(pwd,MAX_LINE_SIZE);
-		if (num_arg > 2){
+		if (num_arg > 1){
 			cout << "smash error: cd: too many arguments"<<endl;
 		}
 		else if (!strcmp(args[1], "-")){
@@ -148,7 +148,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 	else if (!strcmp(cmd, "fg")) 
 	{
 		int status;
-		if (num_arg == 2){
+		if (num_arg == 1){
 			std::list<job>::iterator it = get_job(jobs, atoi(args[2]));
 			if (it == jobs.end()){
 				fprintf(stdout, "smash error: fg: job-id %d does not exist", atoi(args[2]));
@@ -166,7 +166,7 @@ int ExeCmd(list<job> jobs, char* lineSize, char* cmdString, int quit, job fg_cur
 				fg_cur.job_id = 0;
 			}
 		}
-		else if (num_arg == 1){
+		else if (num_arg == 0){
 			int max_job_id = max_job(jobs);
 			if (max_job_id == 0){
 				cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪jobs‬‬ ‫‪list‬‬ ‫‪is‬‬ ‫‪empty‬‬";
@@ -338,16 +338,18 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs,
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, list<job> jobs,  char* cmdString, int quit, job fg_cur, char* cd)
+int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int quit, job fg_cur, char*&cd)
 {
     bool bg = 0;
 	char* Command;
 	char* delimiters = " \t\n";
 	char *args[MAX_ARG];
 	int status;
+	char original_line[strlen(lineSize)-2];
 	if (lineSize[strlen(lineSize)-2] == '&'){
         bg = 1;
 		lineSize[strlen(lineSize)-2] = '\0';
+		strcpy(original_line,lineSize); 
     	Command = strtok(lineSize, delimiters);
         if (Command == NULL)   {
 		    return -1;
@@ -355,12 +357,12 @@ int BgCmd(char* lineSize, list<job> jobs,  char* cmdString, int quit, job fg_cur
 		// Add your code here (execute a in the background)
         job bg_job;
         bg_job.job_id = max_job(jobs)+1;
-        bg_job.command = Command;
+        bg_job.command = cmdString;
         bg_job.pid = getpid();
         time(&(bg_job.seconds_elapsed));
         bg_job.stopped = 0;
         jobs.push_back(bg_job);
-        ExeCmd(jobs, lineSize, cmdString, quit, fg_cur, cd ,bg); //try
+        ExeCmd(jobs, original_line, cmdString, quit, fg_cur, cd ,bg); //try
         return 0;
 	}
 	return -1;
