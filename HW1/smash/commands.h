@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <cstdlib>
 #include <sys/types.h>
 #include <iostream>
 #include <list>
+#include <iterator>
 #include <sys/wait.h>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
@@ -24,17 +26,14 @@ class job {
         bool stopped;
         
         job& operator=(const job& other){
-        	
         	if(this == &other){
         		return *this;
         	}
-        	
         	this->job_id = other.job_id;
         	this->command = other.command;
         	this->pid = other.pid;
         	this->seconds_elapsed = other.seconds_elapsed;
         	this->stopped = other.stopped;
-        	
         	return *this;
         }
         // maybe we need to add something with the signals

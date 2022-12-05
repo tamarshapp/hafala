@@ -4,9 +4,11 @@
 #include "signals.h"
 #include <signal.h>
 #include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <stdio.h>
 #include <list>
+#include <iterator>
 using namespace std;
 //********************************************
 
@@ -153,34 +155,35 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 	{
 		int status;
 		int no_job = 0;
-		if (num_arg == 1){
-			std::list<job>::iterator it = get_job(jobs, atoi(args[2]), no_job);
+		if ((num_arg == 1) && (jobs.empty())){
+			cout<<"smash error: fg: job-id "<<atoi(args[1])<<" does not exist"<<endl;
+		}
+		else if (num_arg == 1){
+			std::list<job>::iterator it = get_job(jobs, atoi(args[1]), no_job);
 			if (no_job == 1){
-				fprintf(stdout, "smash error: fg: job-id %d does not exist", atoi(args[2]));
+				cout<<"smash error: fg: job-id "<<args[1]<<" does not exist"<<endl;
 			}
 			else {
-				kill(it->pid, SIGCONT);
-				fg_cur = (const job&)it;
-				waitpid(it->pid, &status, WNOHANG | WUNTRACED);
-				/*if (WIFSTOPPED(status)){
-					catch_kill(fg_cur);
-				}
-				else if(WIFSIGNALED(status)){
-					catch_sleep(jobs, fg_cur);
-				}*/
+				fg_cur = *it;
+				cout<<it->command<<" : "<<it->pid<<endl;
+				kill(fg_cur.pid, SIGCONT);
+				jobs.erase(it);
+				waitpid(fg_cur.pid, &status, WUNTRACED);
 				fg_cur.job_id = 0;
 			}
 		}
 		else if (num_arg == 0){
-			int max_job_id = max_job(jobs);
-			if (max_job_id == 0){
-				cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪jobs‬‬ ‫‪list‬‬ ‫‪is‬‬ ‫‪empty‬‬";
+			if (jobs.empty()){
+				cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪jobs‬‬ ‫‪list‬‬ ‫‪is‬‬ ‫‪empty‬‬"<<endl;
 			}
 			else{
+				int max_job_id = max_job(jobs);
 				std::list<job>::iterator it = get_job(jobs, max_job_id, no_job);
 				kill(it->pid, SIGCONT);
-				fg_cur = (const job&)it;
-				waitpid(it->pid, &status, WNOHANG | WUNTRACED);
+				fg_cur = *it;
+				cout<<it->command<<" : "<<it->pid<<endl;
+				waitpid(it->pid, &status, WUNTRACED);
+				jobs.erase(it);
 				/*if (WIFSTOPPED(status)){
 					catch_kill(fg_cur);
 				}
@@ -191,7 +194,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 			}
 		}
 		else{
-			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬";
+			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
 		}
 	} 
 	/*************************************************/
@@ -288,7 +291,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 	}
 	else if (!strcmp(cmd, "^Z")){
 		catch_sleep(jobs, fg_cur);
-	}
+	}*/
 	/*************************************************/
 	else // external command
 	{
@@ -323,14 +326,13 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs
                 	// Child Process
                		setpgrp();
                		if(bg == 0){
-               	
 						fg_cur.job_id = -1;
 						fg_cur.command = cmdString;
 						fg_cur.pid = getpid();
 						time(&(fg_cur.seconds_elapsed));
 						fg_cur.stopped = 0;				
                		}               	
-                    execv(args[0] , args );
+                    execv(args[0] , args);
 			        perror("error exec");
                     exit(1);
 			default:
