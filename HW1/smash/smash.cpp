@@ -34,6 +34,12 @@ int main(int argc, char *argv[])
     actcz.sa_handler = &catch_sig;
     sigaction(SIGINT, &actcz, NULL);
     sigaction(SIGSTOP, &actcz, NULL);
+    fg_cur.job_id = 0;
+	fg_cur.job_id = -1;
+	fg_cur.command = "-";
+	fg_cur.pid = 0;
+	fg_cur.seconds_elapsed = 0;
+	fg_cur.stopped = 0;
 
 	//signal declaretions
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c

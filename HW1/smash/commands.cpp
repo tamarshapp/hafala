@@ -16,16 +16,15 @@ using namespace std;
 // Description: bing the job matching id
 // Parameters: pointer to jobs, job id string
 // Returns: iterator in the job place
-std::list<job>::iterator get_job(list<job> jobs, int job_id){
-
+std::list<job>::iterator get_job(list<job> jobs, int job_id, int& no_job){
 	std::list<job>::iterator it;
-	for (it = jobs.begin(); it != jobs.end(); ++it){
+	for (it = jobs.begin(); it != jobs.end(); it++){
 		if(it->job_id == job_id){
 			return it;
 		}
 	}
-	return jobs.end();
-
+	no_job = 1;
+	return it;
 }
 
 // function name: max_job
@@ -48,7 +47,7 @@ int max_job(list<job> jobs){
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cur, char* &cd,  bool bg)
+int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_cur, char* & cd, bool bg)
 {
 	char* cmd;
 	char* cmd_fg[MAX_ARG];
@@ -85,37 +84,41 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 			}
 			else{
 				chdir(cd);
-				cd = cd_curr;
+				strcpy(cd, cd_curr);
 			}
-		}
-		else if(!strcmp(args[1], "..")){
-			chdir("..");
-			cd = cd_curr;
 		}
 		else{
 			chdir(args[1]);
-			cd = cd_curr;
+			if (cd == NULL){
+				cd = getcwd(pwd,MAX_LINE_SIZE);
+			}
+			else{
+				strcpy(cd, cd_curr);
+			}
 		}
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "pwd")) 
 	{
-		printf(getcwd(pwd,MAX_LINE_SIZE));
+		cout << getcwd(pwd,MAX_LINE_SIZE)<<endl;
 	}
-	
 	/*************************************************/
 	else if (!strcmp(cmd, "kill"))
 	{
- 		if ((num_arg != 2) || (atoi(args[1]) >= 0)){ 																										//check what is a illegal format and where to print
- 			fprintf(stdout, "‫‪smash‬‬ ‫‪error:‬‬ ‫‪kill:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬");
+		int no_job = 0;
+		if ((num_arg != 2) || (atoi(args[1]) >= 0)){ 																										//check what is a illegal format and where to print
+ 			cout<<"‫‪smash‬‬ ‫‪error:‬‬ ‫‪kill:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
  		}
- 		std::list<job>::iterator it = get_job(jobs, atoi(args[2]));
- 		if (it != jobs.end()){
- 			kill(it->pid, atoi(args[1]));																												//what is the place of pid
- 		}
- 		else {
- 			fprintf(stdout, "smash error: kill: job-id %d does not exist", args[2]);
- 		}
+		else {
+			std::list<job>::iterator it;
+			it = get_job(jobs, atoi(args[2]), no_job);
+			if (no_job == 0){
+				kill(it->pid, atoi(args[1]));																												//what is the place of pid
+			}
+			else {
+				cout<<"smash error: kill: job-id" <<args[2]<< "does not exist"<<endl;
+			}
+		}
  		
 	}
 	/*************************************************/
@@ -127,10 +130,10 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 		while(it != jobs.end()){
 			if (kill(it->pid, 0) == 0){
 				if (it->stopped){
-					fprintf(stdout, "[%d] %s : %d %d (stopped)", it->job_id, it->command, it->pid, difftime(time(time_now), it->seconds_elapsed));
+					cout<<"["<<it->job_id<<"] " <<it->command<<" : " <<it->pid <<difftime(time(time_now), it->seconds_elapsed)<<"(stopped)"<<endl;
 				}
 				else{
-					fprintf(stdout, "[%d] %s : %d %d", it->job_id, it->command, it->pid, difftime(time(time_now), it->seconds_elapsed));
+					cout<<"["<<it->job_id<<"] " <<it->command<<" : " <<it->pid <<difftime(time(time_now), it->seconds_elapsed)<<endl;
 				}
 				it++;
 			}
@@ -148,9 +151,10 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 	else if (!strcmp(cmd, "fg")) 
 	{
 		int status;
+		int no_job = 0;
 		if (num_arg == 1){
-			std::list<job>::iterator it = get_job(jobs, atoi(args[2]));
-			if (it == jobs.end()){
+			std::list<job>::iterator it = get_job(jobs, atoi(args[2]), no_job);
+			if (no_job == 1){
 				fprintf(stdout, "smash error: fg: job-id %d does not exist", atoi(args[2]));
 			}
 			else {
@@ -172,7 +176,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 				cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪jobs‬‬ ‫‪list‬‬ ‫‪is‬‬ ‫‪empty‬‬";
 			}
 			else{
-				std::list<job>::iterator it = get_job(jobs, max_job_id);
+				std::list<job>::iterator it = get_job(jobs, max_job_id, no_job);
 				kill(it->pid, SIGCONT);
 				fg_cur = (const job&)it;
 				waitpid(it->pid, &status, WNOHANG | WUNTRACED);
@@ -192,10 +196,11 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
+		int no_job = 0;
 		//if we get the job id
 		if (num_arg == 2){
-			std::list<job>::iterator it = get_job(jobs, atoi(args[2]));
-			if (it == jobs.end()){
+			std::list<job>::iterator it = get_job(jobs, atoi(args[2]), no_job);
+			if (no_job == 1){
 				fprintf(stdout, "smash error: bg: job-id %d does not exist", atoi(args[2]));
 			}
 			else if(it->stopped == 1){
@@ -221,7 +226,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 				cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪bg:‬‬ ‫‪there‬‬ ‫‪are‬‬ ‫‪no‬‬ ‫‪stopped‬‬ ‫‪jobs‬‬ ‫‪to‬‬ ‫‪resume‬‬";
 			}
 			else{
-				std::list<job>::iterator it = get_job(jobs, max_job_id_stopped);
+				std::list<job>::iterator it = get_job(jobs, max_job_id_stopped, no_job);
 				kill(it->pid, SIGCONT);
 				it->pid = 0;
 			}
@@ -233,25 +238,28 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
-		if (num_arg == 2 & (!strcmp((char*)args[1], "kill"))){
+		if ((num_arg == 1) && (!strcmp(args[1], "kill"))){
 			std::list<job>::iterator it;
 			for (it = jobs.begin(); it != jobs.end(); ++it){
-				kill(it->pid, SIGTERM);
-				sleep(5000);
-				if (!kill(it->pid, 0)){
-					fprintf(stdout, "[%d] %s - Sending SIGTERM... Done.", it->job_id, it->command);
+				if (kill(it->pid, 0) == 0){
+					kill(it->pid, SIGTERM);
+					sleep(5000);
+					if (!kill(it->pid, 0)){
+						cout<<"["<<it->job_id<<it->command  <<" - Sending SIGTERM... Done."<<endl;
+					}
+					else{
+						kill(it->pid, SIGKILL);
+						cout<<it->job_id<<it->command<<"- Sending SIGTERM... (5 sec passed) Sending SIGKILL... Done."<<endl;
+					}
 				}
-				else{
-					kill(it->pid, SIGKILL);
-					fprintf(stdout, "[%d] %s - Sending SIGTERM... (5 sec passed) Sending SIGKILL... Done.", it->job_id, it->command);
-				}
-			}
+			}	
 			quit = 0;
 		}
 		else {
 			quit = 0;
 		}
 	}
+	/********/
 	else if (!strcmp(cmd, "diff")){
 		if (num_arg != 3){
 			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪diff:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬";
@@ -299,29 +307,44 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int quit, job fg_cu
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs, job fg_cur)
+void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs, job &fg_cur)
 {
 	int status;
 	int pID;
-    	switch(pID = fork()) 
-	{
+    switch(pID = fork()) 
+    {
     		case -1: 
 					// Add your code here (error)
                      perror("error fork");
                      exit(1);
         	case 0 :
+        			
                 	// Child Process
                		setpgrp();
+               		if(bg == 0){
+               	
+						fg_cur.job_id = -1;
+						fg_cur.command = cmdString;
+						fg_cur.pid = getpid();
+						time(&(fg_cur.seconds_elapsed));
+						fg_cur.stopped = 0;
+				
+				
+               		}
+						
 					
 			        // Add your code here (execute an external command)
-					
+               	
                     execv(args[0] , args );
 			        perror("error exec");
                     exit(1);
 			default:
                 	// Add your code here
                     if(bg == 0){
-        				waitpid(pID, &status, WNOHANG | WUNTRACED);
+        				//waitpid(pID, &status, WNOHANG | WUNTRACED);
+                    	waitpid(pID, &status, 0);
+                    	fg_cur.job_id = 0;
+                
         				/*if (WIFSTOPPED(status)){
         					catch_kill(fg_cur);
         				}
@@ -338,7 +361,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs,
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int quit, job fg_cur, char*&cd)
+int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int &quit, job& fg_cur, char*&cd)
 {
     bool bg = 0;
 	char* Command;
