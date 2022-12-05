@@ -42,6 +42,6 @@ class job {
 
 
 int ExeCmd(list<job> &jobs, char* lineSize, char* cmdString, int &quit, job& fg_cur, char* &cd, bool bg);
-void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs, job& fg_cur);
+void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs, job& fg_cur);
 int BgCmd(char* lineSize, list<job>& jobs,  char* cmdString, int &quit, job& fg_cur, char* &cd);
 #endif

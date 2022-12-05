@@ -243,7 +243,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 			for (it = jobs.begin(); it != jobs.end(); ++it){
 				if (kill(it->pid, 0) == 0){
 					kill(it->pid, SIGTERM);
-					sleep(5000);
+					sleep(5);
 					if (!kill(it->pid, 0)){
 						cout<<"["<<it->job_id<<it->command  <<" - Sending SIGTERM... Done."<<endl;
 					}
@@ -307,7 +307,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs, job &fg_cur)
+void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs, job &fg_cur)
 {
 	int status;
 	int pID;
@@ -327,14 +327,8 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs,
 						fg_cur.command = cmdString;
 						fg_cur.pid = getpid();
 						time(&(fg_cur.seconds_elapsed));
-						fg_cur.stopped = 0;
-				
-				
-               		}
-						
-					
-			        // Add your code here (execute an external command)
-               	
+						fg_cur.stopped = 0;				
+               		}               	
                     execv(args[0] , args );
 			        perror("error exec");
                     exit(1);
@@ -351,6 +345,15 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job> jobs,
         				else if(WIFSIGNALED(status)){
         					catch_sleep(jobs, fg_cur);
         				}*/
+                    }
+                    else{
+                        job bg_job;
+                        bg_job.job_id = max_job(jobs)+1;
+                        bg_job.command = cmdString;
+                        bg_job.pid = pID;
+                        time(&(bg_job.seconds_elapsed));
+                        bg_job.stopped = 0;
+                        jobs.push_back(bg_job);
                     }
 	}
 }
@@ -378,13 +381,7 @@ int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int &quit, job& fg_
 		    return -1;
         }
 		// Add your code here (execute a in the background)
-        job bg_job;
-        bg_job.job_id = max_job(jobs)+1;
-        bg_job.command = cmdString;
-        bg_job.pid = getpid();
-        time(&(bg_job.seconds_elapsed));
-        bg_job.stopped = 0;
-        jobs.push_back(bg_job);
+
         ExeCmd(jobs, original_line, cmdString, quit, fg_cur, cd ,bg); //try
         return 0;
 	}
