@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
     char cmdString[MAX_LINE_SIZE];
     struct sigaction actcz = {0};
     actcz.sa_handler = &catch_sig;
+    actcz.sa_flags = SA_RESTART;
     sigaction(SIGINT, &actcz, NULL);
-    sigaction(SIGSTOP, &actcz, NULL);
+    sigaction(SIGTSTP, &actcz, NULL);
     fg_cur.job_id = 0;
-	fg_cur.job_id = -1;
 	fg_cur.command = "-";
 	fg_cur.pid = 0;
 	fg_cur.seconds_elapsed = 0;
@@ -63,7 +63,6 @@ int main(int argc, char *argv[])
 	}
 	L_Fg_Cmd[0] = '\0';
 	int quit = 1;
-	fg_cur.job_id = 0;
 	char* cd = NULL;
     while (quit == 1)
     {
@@ -72,9 +71,9 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// background command	
-	 	if(!BgCmd(lineSize, jobs, cmdString, quit, fg_cur, cd)) continue; 
+	 	if(!BgCmd(lineSize, jobs, cmdString, quit, cd)) continue; 
 					// built in commands
-		ExeCmd(jobs, lineSize, cmdString, quit, fg_cur, cd, 0);
+		ExeCmd(jobs, lineSize, cmdString, quit, cd, 0);
 		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdString[0]='\0';

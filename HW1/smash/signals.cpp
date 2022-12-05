@@ -10,20 +10,22 @@
 #include <iostream>
 #include <list>
 using namespace std;
-extern job fg_cur;
-extern std::list<job> jobs;
+
 
 void catch_sig(int sig) {
-	if (sig == SIGKILL){
+	if (fg_cur.job_id==0){
+		return;
+	}
+	if (sig == SIGINT){
 		cout << "smash: caught ctrl-C"<<endl;
 		if(fg_cur.job_id != 0){
-		    pid_t old = fg_cur.pid;
-		    kill(fg_cur.pid, SIGKILL);
-		    fg_cur.job_id = 0;
-		    std::cout << "smash: process " <<old<< " was killed" <<endl;
+			pid_t old = fg_cur.pid;
+			kill(fg_cur.pid, SIGINT);
+			fg_cur.job_id = 0;
+			std::cout << "smash: process " <<old<< " was killed" <<endl;
 		}
 	}
-	else if (sig == SIGSTOP){
+	else if (sig == SIGTSTP){
 	    cout << "smash: caught ctrl-Z"<<endl;
 	    if(fg_cur.job_id != 0) {
 	        pid_t old = fg_cur.pid;
@@ -32,7 +34,7 @@ void catch_sig(int sig) {
 	        fg_cur.stopped = 1;
 	        jobs.push_back(fg_cur);
 	        fg_cur.job_id = 0;
-	        std::cout << "smash: process " <<old<< " was killed" << endl;
+	        std::cout << "smash: process " <<old<< " stopped" << endl;
 	    }
 	}
 	return;

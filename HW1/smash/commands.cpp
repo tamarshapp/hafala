@@ -49,7 +49,7 @@ int max_job(list<job> jobs){
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_cur, char* & cd, bool bg)
+int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 {
 	char* cmd;
 	char* cmd_fg[MAX_ARG];
@@ -295,7 +295,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 	/*************************************************/
 	else // external command
 	{
- 		ExeExternal(args, cmdString, bg, jobs, fg_cur);
+ 		ExeExternal(args, cmdString, bg, jobs);
 	 	return 0;
 	}
 	if (illegal_cmd == true)
@@ -311,7 +311,7 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs, job &fg_cur)
+void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs)
 {
 	int status;
 	int pID;
@@ -324,14 +324,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs
         	case 0 :
         			
                 	// Child Process
-               		setpgrp();
-               		if(bg == 0){
-						fg_cur.job_id = -1;
-						fg_cur.command = cmdString;
-						fg_cur.pid = getpid();
-						time(&(fg_cur.seconds_elapsed));
-						fg_cur.stopped = 0;				
-               		}               	
+               		setpgrp();              	
                     execv(args[0] , args);
 			        perror("error exec");
                     exit(1);
@@ -339,15 +332,13 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs
                 	// Add your code here
                     if(bg == 0){
         				//waitpid(pID, &status, WNOHANG | WUNTRACED);
-                    	waitpid(pID, &status, 0);
+                    	fg_cur.job_id = -1;
+                    	fg_cur.command = cmdString;
+                    	fg_cur.pid = pID;
+                    	time(&(fg_cur.seconds_elapsed));
+						fg_cur.stopped = 0;
+                    	waitpid(pID, &status, WUNTRACED);
                     	fg_cur.job_id = 0;
-                
-        				/*if (WIFSTOPPED(status)){
-        					catch_kill(fg_cur);
-        				}
-        				else if(WIFSIGNALED(status)){
-        					catch_sleep(jobs, fg_cur);
-        				}*/
                     }
                     else{
                         job bg_job;
@@ -367,7 +358,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int &quit, job& fg_cur, char*&cd)
+int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int &quit, char*&cd)
 {
     bool bg = 0;
 	char* Command;
@@ -385,7 +376,7 @@ int BgCmd(char* lineSize, list<job> &jobs,  char* cmdString, int &quit, job& fg_
         }
 		// Add your code here (execute a in the background)
 
-        ExeCmd(jobs, original_line, cmdString, quit, fg_cur, cd ,bg); //try
+        ExeCmd(jobs, original_line, cmdString, quit, cd ,bg); //try
         return 0;
 	}
 	return -1;
