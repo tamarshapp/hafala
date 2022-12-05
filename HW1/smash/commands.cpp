@@ -113,10 +113,11 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 			std::list<job>::iterator it;
 			it = get_job(jobs, atoi(args[2]), no_job);
 			if (no_job == 0){
-				kill(it->pid, atoi(args[1]));																												//what is the place of pid
+				kill(it->pid, atoi(args[1]));
+				cout<<"signal number " <<args[1]<< " was sent to pid "<<it->pid<<endl;
 			}
 			else {
-				cout<<"smash error: kill: job-id" <<args[2]<< "does not exist"<<endl;
+				cout<<"smash error: kill: job-id " <<args[2]<< " does not exist"<<endl;
 			}
 		}
  		
