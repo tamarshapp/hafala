@@ -245,11 +245,11 @@ int ExeCmd(list<job>& jobs, char* lineSize, char* cmdString, int &quit, job& fg_
 					kill(it->pid, SIGTERM);
 					sleep(5);
 					if (!kill(it->pid, 0)){
-						cout<<"["<<it->job_id<<it->command  <<" - Sending SIGTERM... Done."<<endl;
+						cout<<"["<<it->job_id<<"] "<<it->command  <<" - Sending SIGTERM... Done."<<endl;
 					}
 					else{
 						kill(it->pid, SIGKILL);
-						cout<<it->job_id<<it->command<<"- Sending SIGTERM... (5 sec passed) Sending SIGKILL... Done."<<endl;
+						cout<<"["<<it->job_id<<"] "<<it->command<<"- Sending SIGTERM... (5 sec passed) Sending SIGKILL... Done."<<endl;
 					}
 				}
 			}	
