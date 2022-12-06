@@ -18,7 +18,7 @@ main file. This file contains the main function of smash
 using namespace std;
 
 char* L_Fg_Cmd;
-std::list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
+list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE];
 job fg_cur;
 
@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// background command	
-	 	if(!BgCmd(lineSize, jobs, cmdString, quit, cd)) continue; 
+	 	if(!BgCmd(lineSize, cmdString, quit, cd)) continue; 
 					// built in commands
-		ExeCmd(jobs, lineSize, cmdString, quit, cd, 0);
+		ExeCmd(lineSize, cmdString, quit, cd, 0);
 		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdString[0]='\0';

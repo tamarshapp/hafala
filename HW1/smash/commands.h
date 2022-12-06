@@ -12,6 +12,7 @@
 #include <iostream>
 #include <list>
 #include <iterator>
+#include <string>
 #include <sys/wait.h>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
@@ -24,7 +25,10 @@ class job {
         pid_t pid;
         time_t seconds_elapsed;
         bool stopped;
-        
+//        job();
+//        job(string name, int p_id);
+//        job(const job &work);
+
         job& operator=(const job& other){
         	if(this == &other){
         		return *this;
@@ -40,10 +44,11 @@ class job {
 };
 
 
-int ExeCmd(list<job> &jobs, char* lineSize, char* cmdString, int &quit, char* &cd, bool bg);
-void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg, list<job>& jobs);
-int BgCmd(char* lineSize, list<job>& jobs,  char* cmdString, int &quit, char* &cd);
-
 extern job fg_cur;
-extern std::list<job> jobs;
+extern list<job> jobs;
+int ExeCmd(char* lineSize, char* cmdString, int &quit, char* &cd, bool bg);
+void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg);
+int BgCmd(char* lineSize, char* cmdString, int &quit, char* &cd);
+int max_job(list<job> jobs);
+
 #endif
