@@ -10,9 +10,9 @@ main file. This file contains the main function of smash
 #include <string.h>
 #include <signal.h>
 #include <list>
+#include <time.h>
 #include "commands.h"
 #include "signals.h"
-#include <time.h>
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 using namespace std;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
 
 	
-	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
+	L_Fg_Cmd =new char [MAX_LINE_SIZE+1];
 	if (L_Fg_Cmd == NULL){
     	perror("smash error: malloc failed");
 		exit (-1);
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	int quit = 1;
     while (quit == 1)
     {
-    	cout << "smash > "<<endl;
+    	cout << "smash > "<<flush;
 		char* get = fgets(lineSize, MAX_LINE_SIZE, stdin);
 		if (get == NULL){
 	    	perror("smash error: fgets failed");

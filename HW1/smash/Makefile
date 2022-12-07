@@ -6,7 +6,7 @@ OBJS = smash.o commands.o signals.o
 RM = rm -f
 # Creating the  executable
 smash: $(OBJS)
-	$(CCLINK) $(CXXFLAGS) -o smash $(OBJS)
+	$(CCLINK) $(CXXFLAGS) $(OBJS) -Werror -pedantic-errors -DNDEBUG *.cpp -o smash
 # Creating the object files
 commands.o: commands.cpp commands.h signals.h
 	$(CXX) $(CXXFLAGS) -c -fpic commands.cpp

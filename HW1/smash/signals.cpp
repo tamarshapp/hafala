@@ -6,7 +6,7 @@
 /* Name: handler_cntlc
    Synopsis: handle the Control-C */
 #include "signals.h"
-#include "commands.h"
+//#include "commands.h"
 #include <iostream>
 #include <list>
 using namespace std;
@@ -20,7 +20,7 @@ void catch_sig(int sig) {
 		cout << "smash: caught ctrl-C"<<endl;
 		if(fg_cur.job_id != 0){
 			pid_t old = fg_cur.pid;
-			int kill_sigit = kill(fg_cur.pid, SIGINT);
+			int kill_sigit = kill(fg_cur.pid, SIGKILL);
 			if(kill_sigit == -1){
 				perror("smash error: kill failed");
 				return;
@@ -48,12 +48,27 @@ void catch_sig(int sig) {
 	        	fg_cur.job_id = hold_job;
 	        }
 	        else{
-	        	 fg_cur.job_id =max_job(jobs)+1; 	
+	        	check_list();
+	        	fg_cur.job_id =max_job(jobs)+1; 	
 	        }
 	        hold_job = 0;
-	        jobs.push_back(fg_cur);
+	    	list<job>::iterator it = jobs.begin();
+	    	bool insert_list = false;
+	    	while(it != jobs.end()){
+	    		if (it->job_id < fg_cur.job_id){
+	    			it++;
+	    		}
+	    		else{
+	    			insert_list = true;
+	    			jobs.insert(it, fg_cur);
+	    			break;
+	    		}
+	    	}
+	    	if(!(insert_list)){
+		        jobs.push_back(fg_cur);
+	    	}
 	        fg_cur.job_id = 0;
-	        std::cout << "smash: process " <<old<< " stopped" << endl;
+	        cout<<"smash: process " <<old<< " stopped" << endl;
 	    }
 	}
 	return;
