@@ -34,8 +34,16 @@ int main(int argc, char *argv[])
     struct sigaction actcz = {0};
     actcz.sa_handler = &catch_sig;
     actcz.sa_flags = SA_RESTART;
-    sigaction(SIGINT, &actcz, NULL);
-    sigaction(SIGTSTP, &actcz, NULL);
+    int sig_int = sigaction(SIGINT, &actcz, NULL);
+    if (sig_int == -1){
+    	perror("smash error: sigaction failed");
+    	exit(-1);
+    }
+    int sig_stp = sigaction(SIGTSTP, &actcz, NULL);
+    if (sig_int == -1){
+    	perror("smash error: sigaction failed");
+    	exit(-1);
+    }
     fg_cur.job_id = 0;
 	fg_cur.command = "-";
 	fg_cur.pid = 0;
@@ -60,6 +68,7 @@ int main(int argc, char *argv[])
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL){
+    	perror("smash error: malloc failed");
 		exit (-1);
 	}
 	L_Fg_Cmd[0] = '\0';
@@ -67,7 +76,11 @@ int main(int argc, char *argv[])
     while (quit == 1)
     {
     	cout << "smash > "<<endl;
-		fgets(lineSize, MAX_LINE_SIZE, stdin);
+		char* get = fgets(lineSize, MAX_LINE_SIZE, stdin);
+		if (get == NULL){
+	    	perror("smash error: fgets failed");
+	    	exit(-1);
+		}
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// background command

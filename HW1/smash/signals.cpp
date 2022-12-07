@@ -20,7 +20,11 @@ void catch_sig(int sig) {
 		cout << "smash: caught ctrl-C"<<endl;
 		if(fg_cur.job_id != 0){
 			pid_t old = fg_cur.pid;
-			kill(fg_cur.pid, SIGINT);
+			int kill_sigit = kill(fg_cur.pid, SIGINT);
+			if(kill_sigit == -1){
+				perror("smash error: kill failed");
+				return;
+			}
 			fg_cur.job_id = 0;
 			std::cout << "smash: process " <<old<< " was killed" <<endl;
 		}
@@ -29,8 +33,16 @@ void catch_sig(int sig) {
 	    cout << "smash: caught ctrl-Z"<<endl;
 	    if(fg_cur.job_id != 0) {
 	        pid_t old = fg_cur.pid;
-	        kill(fg_cur.pid, SIGSTOP);
+	        int kill_sigtstp = kill(fg_cur.pid, SIGSTOP);
+	        if(kill_sigtstp == -1){
+				perror("smash error: kill failed");
+				return;
+	        }
 	        time(&(fg_cur.seconds_elapsed));
+	        if(fg_cur.seconds_elapsed){
+				perror("smash error: time failed");
+				return;
+	        }
 	        fg_cur.stopped = 1;
 	        if(hold_job!=0){
 	        	fg_cur.job_id = hold_job;
@@ -41,7 +53,6 @@ void catch_sig(int sig) {
 	        hold_job = 0;
 	        jobs.push_back(fg_cur);
 	        fg_cur.job_id = 0;
-	        
 	        std::cout << "smash: process " <<old<< " stopped" << endl;
 	    }
 	}
