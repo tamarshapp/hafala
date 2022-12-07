@@ -46,6 +46,26 @@ int max_job(list<job> jobs){
 	return max;
 }
 
+//bool check_built_in(char* command){
+//	if ((!strcmp(cmd, "cd")) || (!strcmp(cmd, "pwd")) || (!strcmp(cmd, "kill")) || (!strcmp(cmd, "jobs")) || 
+//			(!strcmp(cmd, "diff")) || (!strcmp(cmd, "fg")) || (!strcmp(cmd, "bg")) || (!strcmp(cmd, "showpid")) || (!strcmp(cmd, "quit"))){
+//		return true;
+//	}
+//	return false;
+//}
+
+bool check_if_digit(char* in){
+	for(int i = 0; i != sizeof(in) - 1; i++){
+		if ((int)in[i] == 0){
+			break;
+		}
+		if (((int)in[i] < 48) || ((int)in[i] > 57)){
+			return false;
+		}
+	}
+	return true;
+}
+
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
 // Parameters: pointer to jobs, command string
@@ -135,10 +155,10 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 		while(it != jobs.end()){
 			if (kill(it->pid, 0) == 0){
 				if (it->stopped){
-					cout<<"["<<it->job_id<<"] " <<it->command<<" : " <<it->pid <<difftime(time(time_now), it->seconds_elapsed)<<"(stopped)"<<endl;
+					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time(time_now), it->seconds_elapsed)<<" (stopped)"<<endl;
 				}
 				else{
-					cout<<"["<<it->job_id<<"] " <<it->command<<" : " <<it->pid <<difftime(time(time_now), it->seconds_elapsed)<<endl;
+					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time(time_now), it->seconds_elapsed)<<endl;
 				}
 				it++;
 			}
@@ -158,7 +178,10 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 		int status;
 		bool id_exists = false;
 		int no_job = 0;
-		if ((num_arg == 1) && (jobs.empty())){
+		if ((num_arg == 1) && !(check_if_digit(args[1]))){
+			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
+		}
+		else if ((num_arg == 1) && (jobs.empty())){
 			cout<<"smash error: fg: job-id "<<atoi(args[1])<<" does not exist"<<endl;
 		}
 		else if (num_arg == 1){
@@ -232,16 +255,19 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 //				fg_cur.job_id = 0;
 //			}
 //		}
-//		else{
-//			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
-//		}
+		else{
+			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
+		}
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
 		int no_job = 0;
 		//if we get the job id
-		if (num_arg == 1){
+		if ((num_arg == 1) && !(check_if_digit(args[1]))){
+			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪bg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬";
+		}
+		else if (num_arg == 1){
 			list<job>::iterator it = get_job(jobs, atoi(args[1]), no_job);
 			if (no_job == 1){
 				cout<<"smash error: bg: job-id "<< atoi(args[1]) << " does not exist"<<endl;
@@ -251,10 +277,10 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 			}
 			else {
 				kill(it->pid, SIGCONT);
-				cout<<it->command<<" : " <<it->pid<<endl;
 				list<job>::iterator it2;
 				for(it2=jobs.begin(); it2!=jobs.end(); it2++){
 					if(it2->job_id == atoi(args[1])){
+						cout<< it2->command << " : "<<it2->pid<<endl;
 						it2->stopped = false;
 					}
 				}
