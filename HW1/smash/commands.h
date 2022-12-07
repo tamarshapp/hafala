@@ -46,9 +46,10 @@ class job {
 
 extern job fg_cur;
 extern list<job> jobs;
-int ExeCmd(char* lineSize, char* cmdString, int &quit, char* &cd, bool bg);
+extern string TAM;
+int ExeCmd( char* lineSize, char* cmdString, int &quit,  bool bg);
 void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg);
-int BgCmd(char* lineSize, char* cmdString, int &quit, char* &cd);
+int BgCmd(char* lineSize,  char* cmdString, int &quit);
 int max_job(list<job> jobs);
 
 #endif

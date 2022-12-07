@@ -71,7 +71,7 @@ bool check_if_digit(char* in){
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
+int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 {
 	char* cmd;
 	char* cmd_fg[MAX_ARG];
@@ -96,30 +96,33 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
 // MORE IF STATEMENTS AS REQUIRED
 /*************************************************/
-	if (!strcmp(cmd, "cd") ) 
+	if (!strcmp(cmd,"cd") ) 
 	{
-		char* cd_curr = getcwd(pwd,MAX_LINE_SIZE);
+		string TAM_curr = getcwd(pwd,MAX_LINE_SIZE);
+		const char *former = TAM.c_str();
 		if (num_arg > 1){
 			cout << "smash error: cd: too many arguments"<<endl;
-		}
+			return 1;
+			}
 		else if (!strcmp(args[1], "-")){
-			if (cd == NULL){
+			if (!strcmp(former,"first")){
 				cout << "smash error: cd: OLDPWD not set"<<endl;
+				return 1;
 			}
 			else{
-				chdir(cd);
-				strcpy(cd, cd_curr);
+				int c =chdir(former);
+				if (c!=0){
+					return 1;;
+				}
 			}
 		}
 		else{
-			chdir(args[1]);
-			if (cd == NULL){
-				cd = getcwd(pwd,MAX_LINE_SIZE);
-			}
-			else{
-				strcpy(cd, cd_curr);
-			}
+			int c =chdir(args[1]);
+			if (c!=0){
+				return 1;;
+			}		
 		}
+		TAM =TAM_curr;				
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "pwd")) 
@@ -137,14 +140,17 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 			std::list<job>::iterator it;
 			it = get_job(jobs, atoi(args[2]), no_job);
 			if (no_job == 0){
+				//cheack if need without the -
 				kill(it->pid, atoi(args[1]));
-				cout<<"signal number " <<args[1]<< " was sent to pid "<<it->pid<<endl;
+				char *temp = args[1];
+				temp[0]=temp[1];
+				temp[1]=  '\0';
+				cout<<"signal number " <<temp<< " was sent to pid "<<it->pid<<endl;
 			}
 			else {
 				cout<<"smash error: kill: job-id " <<args[2]<< " does not exist"<<endl;
 			}
-		}
- 		
+		}	
 	}
 	/*************************************************/
 	
@@ -155,7 +161,7 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 		while(it != jobs.end()){
 			if (kill(it->pid, 0) == 0){
 				if (it->stopped){
-					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time(time_now), it->seconds_elapsed)<<" (stopped)"<<endl;
+					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<< difftime(time(time_now), it->seconds_elapsed)<<" (stopped)"<<endl;
 				}
 				else{
 					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time(time_now), it->seconds_elapsed)<<endl;
@@ -343,7 +349,8 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "diff")){
-		if (num_arg != 3){
+		bool not_equ = 0;
+		if (num_arg !=2){
 			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪diff:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬";
 		}
 		else{
@@ -352,16 +359,22 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, char* & cd, bool bg)
 			int N = 10000;
 			char buf1[N];
 			char buf2[N];
-
 			do {
 				size_t r1 = fread(buf1, 1, N, f1);
 			    size_t r2 = fread(buf2, 1, N, f2);
-
+			   
 			    if (r1 != r2 ||memcmp(buf1, buf2, r1)) {
-			    	return 1;  // Files are not equal
-			    	}
+			    	not_equ=1;
+			    	cout << 1 <<endl;
+					break;
+			    	  // Files are not equal
+					}
 			} while (!feof(f1) && !feof(f2));
-			return !(feof(f1) && feof(f2));
+				if(!not_equ){
+					cout <<!(feof(f1) && feof(f2)) <<endl;		
+				}
+				fclose(f1);
+				fclose(f2);
 		}
 	}
 	/*else if (!strcmp(cmd, "^C")){
@@ -436,7 +449,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize,  char* cmdString, int &quit, char*&cd)
+int BgCmd(char* lineSize,  char* cmdString, int &quit)
 {
     bool bg = 0;
 	char* Command;
@@ -454,7 +467,7 @@ int BgCmd(char* lineSize,  char* cmdString, int &quit, char*&cd)
         }
 		// Add your code here (execute a in the background)
 
-        ExeCmd(original_line, cmdString, quit, cd ,bg); //try
+        ExeCmd(original_line, cmdString, quit, bg); //try
         return 0;
 	}
 	return -1;

@@ -21,7 +21,7 @@ char* L_Fg_Cmd;
 list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE];
 job fg_cur;
-
+string TAM ="first";
 
 //**************************************************************************************
 // function name: main
@@ -63,7 +63,6 @@ int main(int argc, char *argv[])
 	}
 	L_Fg_Cmd[0] = '\0';
 	int quit = 1;
-	char* cd = NULL;
     while (quit == 1)
     {
     	cout << "smash > "<<endl;
@@ -71,9 +70,9 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// background command	
-	 	if(!BgCmd(lineSize, cmdString, quit, cd)) continue; 
+	 	if(!BgCmd(lineSize, cmdString, quit)) continue; 
 					// built in commands
-		ExeCmd(lineSize, cmdString, quit, cd, 0);
+		ExeCmd(lineSize, cmdString, quit, 0);
 		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdString[0]='\0';
