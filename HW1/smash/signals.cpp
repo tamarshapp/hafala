@@ -39,7 +39,7 @@ void catch_sig(int sig) {
 				return;
 	        }
 	        time(&(fg_cur.seconds_elapsed));
-	        if(fg_cur.seconds_elapsed){
+	        if(fg_cur.seconds_elapsed == (time_t)(-1)){
 				perror("smash error: time failed");
 				return;
 	        }

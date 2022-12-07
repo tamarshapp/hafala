@@ -199,20 +199,20 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	
 	else if (!strcmp(cmd, "jobs")) 
 	{
-		time_t* time_now = NULL;
+		time_t time_now;
 		check_list();
 		std::list<job>::iterator it = jobs.begin();
 		while(it != jobs.end()){
+			time(&time_now);
+			if (time_now == (time_t)(-1)){
+				perror("smash error: time failed");
+				return 1;
+			}
 			if (it->stopped){
-				time(time_now);
-				if ((int)*time_now == -1){
-					perror("smash error: time failed");
-					return 1;
-				}
-				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<< difftime(*time_now, it->seconds_elapsed)<<" (stopped)"<<endl;
+				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<< difftime(time_now, it->seconds_elapsed)<<" (stopped)"<<endl;
 			}
 			else{
-				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(*time_now, it->seconds_elapsed)<<endl;
+				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time_now, it->seconds_elapsed)<<endl;
 			}
 			it++;
 		}
@@ -497,7 +497,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg)
                     	fg_cur.command = cmdString;
                     	fg_cur.pid = pID;
                     	time(&(fg_cur.seconds_elapsed));
-                    	if(fg_cur.seconds_elapsed == -1){
+                    	if(fg_cur.seconds_elapsed == (time_t)(-1)){
                     		perror("smash error: time failed");
                     		return;
                     	}
@@ -515,7 +515,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg)
                         bg_job.command = cmdString;
                         bg_job.pid = pID;
                         time(&(bg_job.seconds_elapsed));
-                        if (bg_job.seconds_elapsed == -1){
+                        if (bg_job.seconds_elapsed == (time_t)(-1)){
                     		perror("smash error: time failed");
                     		return;
                         }
