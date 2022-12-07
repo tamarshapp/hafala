@@ -168,7 +168,11 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	else if (!strcmp(cmd, "kill"))
 	{
 		int no_job = 0;
-		if ((num_arg != 2) || (atoi(args[1]) >= 0)){ 																										//check what is a illegal format and where to print
+		if ((num_arg == 2) && (check_if_digit(args[2]) == false)){
+			cout<<"‫‪smash‬‬ ‫‪error:‬‬ ‫‪kill:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
+		
+		}
+		else if ((num_arg != 2) || (atoi(args[1]) >= 0)){ 																										//check what is a illegal format and where to print
  			cout<<"‫‪smash‬‬ ‫‪error:‬‬ ‫‪kill:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
  		}
 		else {
@@ -176,10 +180,10 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 			it = get_job(jobs, atoi(args[2]), no_job);
 			if (no_job == 0){
 				//cheack if need without the -
-				kill(it->pid, atoi(args[1]));
 				char *temp = args[1];
 				temp[0]=temp[1];
 				temp[1]=  '\0';
+				kill(it->pid, atoi(temp));
 				cout<<"signal number " <<temp<< " was sent to pid "<<it->pid<<endl;
 			}
 			else {
@@ -238,7 +242,9 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 					return 1;
 				}
 				jobs.erase(it);
+				hold_job=fg_cur.job_id;
 				int w_fg = waitpid(it->pid,&status_fg,WUNTRACED);
+				hold_job=0;
 				if (w_fg == -1){
 					perror("smash error: waitpid failed");
 					return 1;
@@ -283,7 +289,9 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 						return 1;
 					}
 					jobs.erase(it);
+					hold_job=fg_cur.job_id;
 					int w_fg = waitpid(it->pid,&status_fg,WUNTRACED);
+					hold_job=0;
 					if (w_fg == -1){
 						perror("smash error: waitpid failed");
 						return 1;

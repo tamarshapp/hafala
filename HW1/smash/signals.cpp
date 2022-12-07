@@ -32,9 +32,16 @@ void catch_sig(int sig) {
 	        kill(fg_cur.pid, SIGSTOP);
 	        time(&(fg_cur.seconds_elapsed));
 	        fg_cur.stopped = 1;
-	        fg_cur.job_id = max_job(jobs)+1;
+	        if(hold_job!=0){
+	        	fg_cur.job_id = hold_job;
+	        }
+	        else{
+	        	 fg_cur.job_id =max_job(jobs)+1; 	
+	        }
+	        hold_job = 0;
 	        jobs.push_back(fg_cur);
 	        fg_cur.job_id = 0;
+	        
 	        std::cout << "smash: process " <<old<< " stopped" << endl;
 	    }
 	}

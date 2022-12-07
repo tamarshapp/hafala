@@ -21,6 +21,7 @@ char* L_Fg_Cmd;
 list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE];
 job fg_cur;
+int hold_job=0;
 string TAM ="first";
 
 //**************************************************************************************

@@ -43,7 +43,7 @@ class job {
         // maybe we need to add something with the signals
 };
 
-
+extern int hold_job;
 extern job fg_cur;
 extern list<job> jobs;
 extern string TAM;
