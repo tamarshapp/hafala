@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     	exit(-1);
     }
     int sig_stp = sigaction(SIGTSTP, &actcz, NULL);
-    if (sig_int == -1){
+    if (sig_stp == -1){
     	perror("smash error: sigaction failed");
     	exit(-1);
     }

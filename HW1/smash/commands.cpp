@@ -96,10 +96,9 @@ void check_list(){
 int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 {
 	char* cmd;
-	char* cmd_fg[MAX_ARG];
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
-	char* delimiters = " \t\n";  
+	const char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
     cmd = strtok(lineSize, delimiters);
@@ -209,10 +208,10 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 				return 1;
 			}
 			if (it->stopped){
-				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<< difftime(time_now, it->seconds_elapsed)<<" (stopped)"<<endl;
+				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<" "<< difftime(time_now, it->seconds_elapsed)<<" (stopped)"<<endl;
 			}
 			else{
-				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time_now, it->seconds_elapsed)<<endl;
+				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<" "<<difftime(time_now, it->seconds_elapsed)<<endl;
 			}
 			it++;
 		}
@@ -227,7 +226,6 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	{
 		int status_fg;
 		bool id_exists = false;
-		int no_job = 0;
 		if ((num_arg == 1) && !(check_if_digit(args[1]))){
 			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
 			return 1;
@@ -242,24 +240,24 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 			{
 				if(it->job_id==atoi(args[1]))//might need to make sure args[1] exists
 				{
-				id_exists=true;
-				cout<<it->command<<" : "<<it->pid<<endl;
-				fg_cur=*it;
-				int curr_fg = kill(it->pid,SIGCONT);
-				if (curr_fg == -1){
-					perror("smash error: kill failed");
-					return 1;
-				}
-				jobs.erase(it);
-				hold_job = fg_cur.job_id;
-				int w_fg = waitpid(it->pid,&status_fg,WUNTRACED);
-				hold_job=0;
-				if (w_fg == -1){
-					perror("smash error: waitpid failed");
-					return 1;
-				}
-				fg_cur.job_id = 0;
-				break;
+					id_exists=true;
+					cout<<it->command<<" : "<<it->pid<<endl;
+					fg_cur=*it;
+					int curr_fg = kill(it->pid,SIGCONT);
+					if (curr_fg == -1){
+						perror("smash error: kill failed");
+						return 1;
+					}
+					jobs.erase(it);
+					hold_job = fg_cur.job_id;
+					int w_fg = waitpid(it->pid,&status_fg,WUNTRACED);
+					hold_job=0;
+					if (w_fg == -1){
+						perror("smash error: waitpid failed");
+						return 1;
+					}
+					fg_cur.job_id = 0;
+					break;
 				}
 			}
 			if (!id_exists){
@@ -535,9 +533,7 @@ int BgCmd(char* lineSize,  char* cmdString, int &quit)
 {
     bool bg = 0;
 	char* Command;
-	char* delimiters = " \t\n";
-	char *args[MAX_ARG];
-	int status;
+	const char* delimiters = " \t\n";
 	char original_line[strlen(lineSize)-2];
 	if (lineSize[strlen(lineSize)-2] == '&'){
         bg = 1;
