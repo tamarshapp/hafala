@@ -69,7 +69,8 @@ int main(int argc, char *argv[])
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
-					// background command	
+					// background command
+		check_list();
 	 	if(!BgCmd(lineSize, cmdString, quit)) continue; 
 					// built in commands
 		ExeCmd(lineSize, cmdString, quit, 0);

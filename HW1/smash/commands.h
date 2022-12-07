@@ -51,5 +51,6 @@ int ExeCmd( char* lineSize, char* cmdString, int &quit,  bool bg);
 void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg);
 int BgCmd(char* lineSize,  char* cmdString, int &quit);
 int max_job(list<job> jobs);
+void check_list();
 
 #endif

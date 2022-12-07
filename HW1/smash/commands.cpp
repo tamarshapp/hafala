@@ -66,6 +66,28 @@ bool check_if_digit(char* in){
 	return true;
 }
 
+void check_list(){
+	list<job>::iterator it = jobs.begin();
+	int status1 = 1;
+	while (it != jobs.end()){
+		pid_t w = waitpid(it->pid, &status1, WNOHANG);
+		if (w == -1){
+			perror("waitpis failed");
+			return;
+		}
+		if (WIFEXITED(status1)){
+			it = jobs.erase(it);
+		}
+		else if (WIFSTOPPED(status1)){
+			it = jobs.erase(it);
+		}
+		else{
+			it++;
+		}
+	}
+	return;
+}
+
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
 // Parameters: pointer to jobs, command string
@@ -80,16 +102,16 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
-    	cmd = strtok(lineSize, delimiters);
-	if (cmd == NULL)
+    cmd = strtok(lineSize, delimiters);
+	if (cmd == NULL){
 		return 0; 
+	}
    	args[0] = cmd;
 	for (i=1; i<MAX_ARG; i++)
 	{
 		args[i] = strtok(NULL, delimiters); 
 		if (args[i] != NULL) 
-			num_arg++; 
- 
+			num_arg++;
 	}
 /*************************************************/	
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
@@ -99,6 +121,11 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	if (!strcmp(cmd,"cd") ) 
 	{
 		string TAM_curr = getcwd(pwd,MAX_LINE_SIZE);
+		int res_cd = TAM_curr.compare(NULL);
+		if (res_cd == 0){
+			perror("smash error: getcwd failed");
+			return 1;
+		}
 		const char *former = TAM.c_str();
 		if (num_arg > 1){
 			cout << "smash error: cd: too many arguments"<<endl;
@@ -109,17 +136,19 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 				cout << "smash error: cd: OLDPWD not set"<<endl;
 				return 1;
 			}
-			else{
-				int c =chdir(former);
-				if (c!=0){
-					return 1;;
+			else {
+				int c = chdir(former);
+				if (c != 0){
+					perror("smash error: chdir failed");
+					return 1;
 				}
 			}
 		}
 		else{
-			int c =chdir(args[1]);
-			if (c!=0){
-				return 1;;
+			int c = chdir(args[1]);
+			if (c != 0){
+				perror("smash error: chdir failed");
+				return 1;
 			}		
 		}
 		TAM =TAM_curr;				
@@ -127,7 +156,13 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	/*************************************************/
 	else if (!strcmp(cmd, "pwd")) 
 	{
-		cout << getcwd(pwd,MAX_LINE_SIZE)<<endl;
+		string pwd_curr = getcwd(pwd,MAX_LINE_SIZE);
+		int res_pwd = pwd_curr.compare(NULL);
+		if (res_pwd == 0){
+			perror("smash error: getcwd failed");
+			return 1;
+		}
+		cout<<pwd_curr<<endl;
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "kill"))
@@ -157,38 +192,36 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	else if (!strcmp(cmd, "jobs")) 
 	{
 		time_t* time_now = NULL;
+		check_list();
 		std::list<job>::iterator it = jobs.begin();
 		while(it != jobs.end()){
-			if (kill(it->pid, 0) == 0){
-				if (it->stopped){
-					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<< difftime(time(time_now), it->seconds_elapsed)<<" (stopped)"<<endl;
-				}
-				else{
-					cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time(time_now), it->seconds_elapsed)<<endl;
-				}
-				it++;
+			if (it->stopped){
+				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<< difftime(time(time_now), it->seconds_elapsed)<<" (stopped)"<<endl;
 			}
 			else{
-				it = jobs.erase(it);
+				cout<<"["<<it->job_id<<"] "<<it->command<<" : "<<it->pid<<difftime(time(time_now), it->seconds_elapsed)<<endl;
 			}
+			it++;
 		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
 	{
-		fprintf(stdout, "smash pid is %d", (int)getpid());
+		cout<<"smash pid is"<<(int)getpid()<<endl;
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
 	{
-		int status;
+		int status_fg;
 		bool id_exists = false;
 		int no_job = 0;
 		if ((num_arg == 1) && !(check_if_digit(args[1]))){
 			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
+			return 1;
 		}
 		else if ((num_arg == 1) && (jobs.empty())){
 			cout<<"smash error: fg: job-id "<<atoi(args[1])<<" does not exist"<<endl;
+			return 1;
 		}
 		else if (num_arg == 1){
 			list<job>::iterator it;
@@ -199,9 +232,17 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 				id_exists=true;
 				cout<<it->command<<" : "<<it->pid<<endl;
 				fg_cur=*it;
-				kill(it->pid,SIGCONT);
+				int curr_fg = kill(it->pid,SIGCONT);
+				if (curr_fg == -1){
+					perror("smash error: kill failed");
+					return 1;
+				}
 				jobs.erase(it);
-				waitpid(it->pid,&status,WUNTRACED);
+				int w_fg = waitpid(it->pid,&status_fg,WUNTRACED);
+				if (w_fg == -1){
+					perror("smash error: waitpid failed");
+					return 1;
+				}
 				fg_cur.job_id = 0;
 				break;
 				}
@@ -236,9 +277,17 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 					{
 					cout<<it->command<<" : "<<it->pid<<endl;
 					fg_cur=*it;
-					kill(it->pid,SIGCONT);
+					int curr_fg = kill(it->pid,SIGCONT);
+					if (curr_fg == -1){
+						perror("smash error: kill failed");
+						return 1;
+					}
 					jobs.erase(it);
-					waitpid(it->pid,&status,WUNTRACED);
+					int w_fg = waitpid(it->pid,&status_fg,WUNTRACED);
+					if (w_fg == -1){
+						perror("smash error: waitpid failed");
+						return 1;
+					}
 					fg_cur.job_id = 0;
 					break;
 					}
@@ -263,6 +312,7 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 //		}
 		else{
 			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
+			return 1;
 		}
 	} 
 	/*************************************************/
@@ -328,17 +378,30 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 	{
 		if ((num_arg == 1) && (!strcmp(args[1], "kill"))){
 			std::list<job>::iterator it;
+			int status_quit;
+			check_list();
 			for (it = jobs.begin(); it != jobs.end(); ++it){
-				if (kill(it->pid, 0) == 0){
-					kill(it->pid, SIGTERM);
-					sleep(5);
-					if (!kill(it->pid, 0)){
-						cout<<"["<<it->job_id<<"] "<<it->command  <<" - Sending SIGTERM... Done."<<endl;
+				int kill_quit = kill(it->pid, SIGTERM);
+				if (kill_quit == -1){
+					perror("smash error: kill failed");
+					return 1;
+				}
+				sleep(5);
+				int w_quit = waitpid(it->pid, &status_quit, WNOHANG);
+				if (w_quit == -1){
+					perror("smash error: waitpid failed");
+					return 1;
+				}
+				if (WIFEXITED(status_quit) || WIFSIGNALED(status_quit)){
+					cout<<"["<<it->job_id<<"] "<<it->command  <<" - Sending SIGTERM... Done."<<endl;
+				}
+				else{
+					int kill_sig = kill(it->pid, SIGKILL);
+					if (kill_sig == -1){
+						perror("smash error: kill failed");
+						return 1;
 					}
-					else{
-						kill(it->pid, SIGKILL);
-						cout<<"["<<it->job_id<<"] "<<it->command<<"- Sending SIGTERM... (5 sec passed) Sending SIGKILL... Done."<<endl;
-					}
+					cout<<"["<<it->job_id<<"] "<<it->command<<"- Sending SIGTERM... (5 sec passed) Sending SIGKILL... Done."<<endl;
 				}
 			}	
 			quit = 0;
@@ -362,7 +425,6 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 			do {
 				size_t r1 = fread(buf1, 1, N, f1);
 			    size_t r2 = fread(buf2, 1, N, f2);
-			   
 			    if (r1 != r2 ||memcmp(buf1, buf2, r1)) {
 			    	not_equ=1;
 			    	cout << 1 <<endl;
