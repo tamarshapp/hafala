@@ -22,7 +22,7 @@ list<job> jobs; //This represents the list of jobs. Please change to a preferred
 char lineSize[MAX_LINE_SIZE];
 job fg_cur;
 int hold_job=0;
-string TAM ="first";
+string cd1 ="first";
 
 //**************************************************************************************
 // function name: main
@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     struct sigaction actcz = {0};
     actcz.sa_handler = &catch_sig;
     actcz.sa_flags = SA_RESTART;
+    //update the conrol state in crnl c and crnl z
     int sig_int = sigaction(SIGINT, &actcz, NULL);
     if (sig_int == -1){
     	perror("smash error: sigaction failed");
@@ -64,8 +65,6 @@ int main(int argc, char *argv[])
 	/************************************/
 	// Init globals 
 
-
-	
 	L_Fg_Cmd =new char [MAX_LINE_SIZE+1];
 	if (L_Fg_Cmd == NULL){
     	perror("smash error: malloc failed");
@@ -84,9 +83,12 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// background command
+		//update the list
 		check_list();
+		//exe bg command
 	 	if(!BgCmd(lineSize, cmdString, quit)) continue; 
 					// built in commands
+	 	//exe fg command or built-in coomand without &
 		ExeCmd(lineSize, cmdString, quit, 0);
 		/* initialize for next line read*/
 		lineSize[0]='\0';

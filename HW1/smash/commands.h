@@ -25,10 +25,6 @@ class job {
         pid_t pid;
         time_t seconds_elapsed;
         bool stopped;
-//        job();
-//        job(string name, int p_id);
-//        job(const job &work);
-
         job& operator=(const job& other){
         	if(this == &other){
         		return *this;
@@ -46,7 +42,7 @@ class job {
 extern int hold_job;
 extern job fg_cur;
 extern list<job> jobs;
-extern string TAM;
+extern string cd1;
 int ExeCmd( char* lineSize, char* cmdString, int &quit,  bool bg);
 void ExeExternal(char *args[MAX_ARG], char* cmdString , bool bg);
 int BgCmd(char* lineSize,  char* cmdString, int &quit);
