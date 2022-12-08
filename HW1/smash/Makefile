@@ -11,9 +11,9 @@ smash: $(OBJS)
 commands.o: commands.cpp commands.h
 	$(CXX) $(CXXFLAGS) -c commands.cpp
 smash.o: smash.cpp commands.h
-	$(CXX) $(CXXFLAGS) -c -fpic smash.cpp
+	$(CXX) $(CXXFLAGS) -c smash.cpp
 signals.o: signals.cpp signals.h
-	$(CXX) $(CXXFLAGS) -c -fpic  signals.cpp
+	$(CXX) $(CXXFLAGS) -c signals.cpp
 # Cleaning old files before new make
 clean:
 	$(RM) $(TARGET) *.o smash *~ "#"* core.*

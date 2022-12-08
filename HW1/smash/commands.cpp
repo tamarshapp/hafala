@@ -225,7 +225,7 @@ int ExeCmd(char* lineSize, char* cmdString, int &quit, bool bg)
 		int status_fg;
 		bool id_exists = false;
 		if ((num_arg == 1) && !(check_if_digit(args[1]))){
-			cout << "‫‪smash‬‬ ‫‪error:‬‬ ‫‪fg:‬‬ ‫‪invalid‬‬ ‫‪arguments‬‬"<<endl;
+			cout<<"smash error: fg: invalid arguments"<<endl;
 			return 1;
 		}
 		else if ((num_arg == 1) && (jobs.empty())){
